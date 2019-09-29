@@ -18,19 +18,19 @@ public class TestRestAPIs {
     UserRepository userRepository;
 
     @RequestMapping(value = "/api/test/user", method = RequestMethod.GET)
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public String userAccess() {
         return ">>> User Contents!";
     }
 
     @GetMapping("/api/test/pm")
-    @PreAuthorize("hasRole('PM')")
+    @PreAuthorize("hasRole('ROLE_PM')")
     public String projectManagementAccess() {
         return ">>> Board Management Project";
     }
 
     @GetMapping("/api/test/admin")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public String adminAccess() {
         return ">>> Admin Contents";
     }

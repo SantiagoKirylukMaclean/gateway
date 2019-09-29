@@ -3,6 +3,7 @@ package ar.tesis.gateway.security.jwt;
 
 
 import ar.tesis.gateway.model.Payment;
+import ar.tesis.gateway.security.services.SellerPrinciple;
 import ar.tesis.gateway.security.services.UserPrinciple;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,10 +37,10 @@ public class JwtProvider {
 
     public String generateJwtToken(Authentication authentication) {
 
-        UserPrinciple userPrincipal = (UserPrinciple) authentication.getPrincipal();
+        SellerPrinciple sellerPrincipal = (SellerPrinciple) authentication.getPrincipal();
 
         return Jwts.builder()
-                .setSubject((userPrincipal.getUsername()))
+                .setSubject((sellerPrincipal.getUsername()))
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationOauth))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)

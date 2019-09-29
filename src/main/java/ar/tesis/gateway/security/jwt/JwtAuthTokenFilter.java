@@ -7,6 +7,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import ar.tesis.gateway.security.services.DefaultSellerDetailsService;
 import ar.tesis.gateway.security.services.UserDetailsServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
     @Autowired
     private UserDetailsServiceImpl userDetailsService;
 
+    @Autowired
+    private DefaultSellerDetailsService defaultSellerDetailsService;
+
     private static final Logger logger = LoggerFactory.getLogger(JwtAuthTokenFilter.class);
 
     @Override
@@ -39,7 +43,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
             if (jwt!=null && tokenProvider.validateJwtToken(jwt)) {
                 String username = tokenProvider.getUserNameFromJwtToken(jwt);
 
-                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                UserDetails userDetails = defaultSellerDetailsService.loadUserByUsername(username);
                 UsernamePasswordAuthenticationToken authentication
                         = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

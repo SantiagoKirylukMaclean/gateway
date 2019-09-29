@@ -2,6 +2,7 @@ package ar.tesis.gateway.security;
 
 import ar.tesis.gateway.security.jwt.JwtAuthEntryPoint;
 import ar.tesis.gateway.security.jwt.JwtAuthTokenFilter;
+import ar.tesis.gateway.security.services.DefaultSellerDetailsService;
 import ar.tesis.gateway.security.services.UserDetailsServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -27,6 +28,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     UserDetailsServiceImpl userDetailsService;
 
     @Autowired
+    DefaultSellerDetailsService defaultSellerDetailsService;
+
+    @Autowired
     private JwtAuthEntryPoint unauthorizedHandler;
 
     @Bean
@@ -37,7 +41,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
         authenticationManagerBuilder
-                .userDetailsService(userDetailsService)
+                .userDetailsService(defaultSellerDetailsService)
                 .passwordEncoder(passwordEncoder());
     }
 

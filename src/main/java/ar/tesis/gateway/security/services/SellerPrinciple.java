@@ -1,8 +1,7 @@
 package ar.tesis.gateway.security.services;
 
-import ar.tesis.gateway.model.User;
+import ar.tesis.gateway.model.Seller;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.validator.constraints.Length;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class UserPrinciple implements UserDetails {
+public class SellerPrinciple implements UserDetails {
 
     private static final long serialVersionUID = 1L;
 
@@ -29,9 +28,9 @@ public class UserPrinciple implements UserDetails {
 
     private Collection<? extends GrantedAuthority> authorities;
 
-    public UserPrinciple(int id, String name,
-                         String username, String email, String password,
-                         Collection<? extends GrantedAuthority> authorities) {
+    public SellerPrinciple(int id, String name,
+                           String username, String email, String password,
+                           Collection<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.name = name;
         this.username = username;
@@ -40,17 +39,17 @@ public class UserPrinciple implements UserDetails {
         this.authorities = authorities;
     }
 
-    public static UserPrinciple build(User user) {
-        List<GrantedAuthority> authorities = user.getRoles().stream().map(role ->
+    public static SellerPrinciple build(Seller seller) {
+        List<GrantedAuthority> authorities = seller.getRoles().stream().map(role ->
                 new SimpleGrantedAuthority(role.getRoles())
         ).collect(Collectors.toList());
 
-        return new UserPrinciple(
-                user.getId(),
-                user.getName(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getPassword(),
+        return new SellerPrinciple(
+                seller.getId(),
+                seller.getNombre(),
+                seller.getUsername(),
+                seller.getEmail(),
+                seller.getPassword(),
                 authorities
         );
     }
@@ -107,7 +106,8 @@ public class UserPrinciple implements UserDetails {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        UserPrinciple user = (UserPrinciple) o;
-        return Objects.equals(id, user.id);
+        SellerPrinciple seller = (SellerPrinciple) o;
+        return Objects.equals(id, seller.getId());
     }
+
 }
