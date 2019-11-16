@@ -1,5 +1,7 @@
 package ar.tesis.gateway.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -36,6 +38,7 @@ public class Market {
     private String categoriaMercante;
 
     @OneToOne(mappedBy = "market")
+    @JsonIgnore
     private Seller seller;
 
 }

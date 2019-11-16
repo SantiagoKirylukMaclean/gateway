@@ -1,5 +1,6 @@
 package ar.tesis.gateway.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 import org.hibernate.validator.constraints.Length;
 
@@ -62,6 +63,7 @@ public class Seller {
     @JoinTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles;
 
+
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "market_id", referencedColumnName = "market_id")
     private Market market;
@@ -73,4 +75,5 @@ public class Seller {
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "configuracion_id", referencedColumnName = "configuracion_id")
     private Configuracion configuracion;
+
 }

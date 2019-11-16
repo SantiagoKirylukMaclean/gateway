@@ -1,6 +1,8 @@
 package ar.tesis.gateway.controller;
 
+import ar.tesis.gateway.model.Seller;
 import ar.tesis.gateway.model.User;
+import ar.tesis.gateway.repository.SellerRepository;
 import ar.tesis.gateway.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,6 +18,9 @@ public class TestRestAPIs {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    SellerRepository sellerRepository;
 
     @RequestMapping(value = "/api/test/user", method = RequestMethod.GET)
     @PreAuthorize("hasRole('ROLE_USER')")
@@ -39,5 +44,11 @@ public class TestRestAPIs {
     public List<User> findAllUsers() {
 
         return userRepository.findAll();
+    }
+
+    @RequestMapping(value = "/api/test/seller", method = RequestMethod.GET)
+    public List<Seller> findAllSeller() {
+
+        return sellerRepository.findAll();
     }
 }

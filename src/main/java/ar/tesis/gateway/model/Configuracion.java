@@ -1,5 +1,6 @@
 package ar.tesis.gateway.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import javax.persistence.*;
@@ -54,5 +55,6 @@ public class Configuracion {
     private String URLOk;
 
     @OneToOne(mappedBy = "configuracion")
+    @JsonIgnore
     private Seller seller;
 }
