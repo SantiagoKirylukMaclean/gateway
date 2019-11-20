@@ -15,9 +15,9 @@ public class Transaction {
     @Column(name = "transaction_id")
     private int id;
 
-    @Column(name = "seller_id")
-    @NotEmpty(message = "*Please provide sellerId")
-    private int sellerId;
+    @ManyToOne
+    @JoinColumn(name = "seller_id", nullable = false)
+    private Seller seller;
 
     @Column(name = "mailComprador")
     @NotEmpty(message = "*Please provide your mail")
