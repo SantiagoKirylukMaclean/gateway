@@ -1,11 +1,7 @@
 package ar.tesis.gateway.controller;
 
 import ar.tesis.gateway.model.Payment;
-import ar.tesis.gateway.model.Transaction;
-import ar.tesis.gateway.modelDTO.RequestApplyTransactionDTO;
-import ar.tesis.gateway.modelDTO.RequestTransactionDTO;
-import ar.tesis.gateway.modelDTO.ResponseStartTransactionDTO;
-import ar.tesis.gateway.modelDTO.TransactionDTO;
+import ar.tesis.gateway.modelDTO.*;
 import ar.tesis.gateway.repository.UserRepository;
 import ar.tesis.gateway.service.PaymentServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,11 +38,11 @@ public class PaymentsController {
 
     @RequestMapping(value = "/run", method = RequestMethod.POST)
     //@PreAuthorize("hasRole('ROLE_USER')")
-    public RequestApplyTransactionDTO runPayment(@Valid @RequestBody RequestApplyTransactionDTO requestApplyTransactionDTO, @RequestHeader HttpHeaders headers) {
+    public ResponseApplyTransactionDTO runPayment(@Valid @RequestBody RequestApplyTransactionDTO requestApplyTransactionDTO, @RequestHeader HttpHeaders headers) {
 
-        paymentServiceInterface.applyTransaction(requestApplyTransactionDTO);
+        return paymentServiceInterface.applyTransaction(requestApplyTransactionDTO);
 
-        return requestApplyTransactionDTO;
+
     }
 
 }

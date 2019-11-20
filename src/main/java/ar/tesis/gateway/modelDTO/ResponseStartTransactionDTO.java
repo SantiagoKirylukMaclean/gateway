@@ -23,5 +23,7 @@ public class ResponseStartTransactionDTO {
     @NotNull(message = "*Please provide an email")
     private Double monto;
 
+    private long transaccionId;
+
     private Set<Descuento> descuento;
 }
