@@ -11,7 +11,7 @@ public class RequestTransactionDTO {
 
     @Getter
     @NotNull(message = "*Please provide an email")
-    private int sellerId;
+    private String sellerUsername;
     @Getter
     @NotEmpty(message = "*Please provide an email")
     private String mailComprador;

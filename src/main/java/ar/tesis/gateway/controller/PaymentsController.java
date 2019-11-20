@@ -33,9 +33,19 @@ public class PaymentsController {
 
     @RequestMapping(value = "/start", method = RequestMethod.POST)
     //@PreAuthorize("hasRole('ROLE_USER')")
-    public String startPayment(@Valid @RequestBody RequestTransactionDTO RequestTransactionDTO, @RequestHeader HttpHeaders headers) {
+    public RequestTransactionDTO startPayment(@Valid @RequestBody RequestTransactionDTO RequestTransactionDTO, @RequestHeader HttpHeaders headers) {
 
         paymentServiceInterface.validTransaction(RequestTransactionDTO);
+
+        return RequestTransactionDTO;
+    }
+
+    @RequestMapping(value = "/run", method = RequestMethod.POST)
+    //@PreAuthorize("hasRole('ROLE_USER')")
+    public String runPayment(@Valid @RequestBody RequestTransactionDTO RequestTransactionDTO, @RequestHeader HttpHeaders headers) {
+
+        paymentServiceInterface.validTransaction(RequestTransactionDTO);
+
         return RequestTransactionDTO.getMailComprador();
     }
 
