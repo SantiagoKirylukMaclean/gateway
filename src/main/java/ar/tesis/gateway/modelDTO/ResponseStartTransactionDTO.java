@@ -8,6 +8,7 @@ import lombok.Data;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.Set;
 
 @Data
 public class ResponseStartTransactionDTO {
@@ -22,5 +23,5 @@ public class ResponseStartTransactionDTO {
     @NotNull(message = "*Please provide an email")
     private Double monto;
 
-    private List<Descuento> descuento;
+    private Set<Descuento> descuento;
 }

@@ -2,6 +2,7 @@ package ar.tesis.gateway.controller;
 
 import ar.tesis.gateway.model.Payment;
 import ar.tesis.gateway.model.Transaction;
+import ar.tesis.gateway.modelDTO.RequestApplyTransactionDTO;
 import ar.tesis.gateway.modelDTO.RequestTransactionDTO;
 import ar.tesis.gateway.modelDTO.ResponseStartTransactionDTO;
 import ar.tesis.gateway.modelDTO.TransactionDTO;
@@ -41,11 +42,11 @@ public class PaymentsController {
 
     @RequestMapping(value = "/run", method = RequestMethod.POST)
     //@PreAuthorize("hasRole('ROLE_USER')")
-    public String runPayment(@Valid @RequestBody RequestTransactionDTO RequestTransactionDTO, @RequestHeader HttpHeaders headers) {
+    public RequestApplyTransactionDTO runPayment(@Valid @RequestBody RequestApplyTransactionDTO requestApplyTransactionDTO, @RequestHeader HttpHeaders headers) {
 
-        //paymentServiceInterface.validTransaction(RequestTransactionDTO);
+        paymentServiceInterface.applyTransaction(requestApplyTransactionDTO);
 
-        return RequestTransactionDTO.getMailComprador();
+        return requestApplyTransactionDTO;
     }
 
 }

@@ -80,11 +80,11 @@ public class Seller {
     @JoinColumn(name = "configuracion_id", referencedColumnName = "configuracion_id")
     private Configuracion configuracion;
 
-    @OneToMany(mappedBy = "seller")
+    @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
     private Set<Transaction> transaction;
 
     @OneToMany(cascade=CascadeType.ALL, fetch=FetchType.EAGER)
-    private List<Descuento> descuento = new ArrayList<>();
-    
+    private Set<Descuento> descuento;
+
 
 }
