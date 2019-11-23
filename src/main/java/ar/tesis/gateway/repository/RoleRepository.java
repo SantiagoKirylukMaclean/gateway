@@ -2,10 +2,10 @@ package ar.tesis.gateway.repository;
 
 import java.util.Optional;
 
-import ar.tesis.gateway.model.Role;
-import ar.tesis.gateway.model.RoleName;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import ar.tesis.gateway.model.Role;
 
 
 @Repository

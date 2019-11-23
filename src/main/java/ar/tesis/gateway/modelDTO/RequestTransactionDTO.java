@@ -1,10 +1,9 @@
 package ar.tesis.gateway.modelDTO;
 
-import lombok.Getter;
-import lombok.NonNull;
-
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
+
+import lombok.Getter;
 
 
 public class RequestTransactionDTO {

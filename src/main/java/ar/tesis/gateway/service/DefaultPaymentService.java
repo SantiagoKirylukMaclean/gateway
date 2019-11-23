@@ -1,23 +1,31 @@
 package ar.tesis.gateway.service;
 
-import ar.tesis.gateway.model.Autorizacion;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.util.Comparator;
+import java.util.HashSet;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
 import ar.tesis.gateway.model.Fraude;
 import ar.tesis.gateway.model.Seller;
 import ar.tesis.gateway.model.Transaction;
-import ar.tesis.gateway.modelDTO.*;
+import ar.tesis.gateway.modelDTO.RequestApplyTransactionDTO;
+import ar.tesis.gateway.modelDTO.RequestTransactionDTO;
+import ar.tesis.gateway.modelDTO.ResponseErrorDTO;
+import ar.tesis.gateway.modelDTO.ResponseOkApplyTransactionDTO;
+import ar.tesis.gateway.modelDTO.ResponseStartTransactionDTO;
 import ar.tesis.gateway.repository.AutorizacionRepository;
 import ar.tesis.gateway.repository.FraudeRepository;
 import ar.tesis.gateway.repository.SellerRepository;
 import ar.tesis.gateway.repository.TransactionRepository;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-
-@Slf4j
 @Service("DefaultPaymentService")
 public class DefaultPaymentService implements PaymentServiceInterface {
 
@@ -33,74 +41,128 @@ public class DefaultPaymentService implements PaymentServiceInterface {
     @Autowired
     AutorizacionRepository autorizacionRepository;
 
-    public ResponseStartTransactionDTO startTransaction (RequestTransactionDTO requestTransactionDTO){
+    public ResponseEntity<?> startTransaction (RequestTransactionDTO requestTransactionDTO){
+    	
+    	try {
 
-        ResponseStartTransactionDTO respose = new ResponseStartTransactionDTO();
+	    	if(requestTransactionDTO == null 
+	    			|| requestTransactionDTO.getSellerUsername() == null || requestTransactionDTO.getMonto() == null
+	    			|| requestTransactionDTO.getMonto() <= 0) {
+	    		ResponseErrorDTO respuesta = new ResponseErrorDTO();
+				respuesta.setCode("90");
+				respuesta.setMessage("El request enviado es invalido");
+				return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+	    	}
+	    	
+			ResponseStartTransactionDTO response = new ResponseStartTransactionDTO();
+		
+		
+			Seller seller = sellerRepository.findByUsername(requestTransactionDTO.getSellerUsername()).get();
+			
+			if(!validTransaction(seller)) {
+				ResponseErrorDTO respuesta = new ResponseErrorDTO();
+	    		respuesta.setCode("98");
+	    		respuesta.setMessage("Vendedor no encontrado");
+	    		return ResponseEntity.status(HttpStatus.NO_CONTENT).body(respuesta);
+			}
+	
+	    
+	    	Transaction transaction = new Transaction();
+	        transaction.setMailComprador(requestTransactionDTO.getMailComprador());
+	        transaction.setMonto(requestTransactionDTO.getMonto());
+	        transaction.setEstado(1);
+	        Set<Transaction> transacciones = seller.getTransaction() == null ? new HashSet<>() : seller.getTransaction();
+	        transacciones.add(transaction);
+	        seller.setTransaction(transacciones);
+	        Seller savedSeller = sellerRepository.save(seller);
+	        //long lastTransaction = savedSeller.getTransaction().stream().max(Comparator.comparing(Transaction::getId)).get().getId();
+	        savedSeller.getTransaction().stream().max(Comparator.comparing(Transaction::getId));
+	
+	
+	        response.setSellerUsername(requestTransactionDTO.getSellerUsername());
+	        response.setMailComprador(requestTransactionDTO.getMailComprador());
+	        response.setMonto(requestTransactionDTO.getMonto());
+	        response.setTransaccionId(savedSeller.getTransaction().stream().max(Comparator.comparing(Transaction::getId)).get().getId());
+	        response.setDescuento(seller.getDescuento());
+	        
+	        return ResponseEntity.status(HttpStatus.OK).body(response);
+		} catch (Exception e) {
+			ResponseErrorDTO respuesta = new ResponseErrorDTO();
+			respuesta.setCode("99");
+			respuesta.setMessage("Ha ocurrido un error al realizar la transaccion");
+			respuesta.setDetailedMessage(getStackTrace(e));
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+		}
 
-        if (validTransaction(requestTransactionDTO) == true){
-            Seller seller = sellerRepository.findByUsername(requestTransactionDTO.getSellerUsername()).get();
-
-            Transaction transaction = new Transaction();
-            transaction.setMailComprador(requestTransactionDTO.getMailComprador());
-            transaction.setMonto(requestTransactionDTO.getMonto());
-            transaction.setEstado(1);
-            Set<Transaction> transacciones = seller.getTransaction() == null ? new HashSet<>() : seller.getTransaction();
-            transacciones.add(transaction);
-            seller.setTransaction(transacciones);
-            Seller savedSeller = sellerRepository.save(seller);
-            long lastTransaction = savedSeller.getTransaction().stream().max(Comparator.comparing(Transaction::getId)).get().getId();
-            savedSeller.getTransaction().stream().max(Comparator.comparing(Transaction::getId));
-
-
-            respose.setSellerUsername(requestTransactionDTO.getSellerUsername());
-            respose.setMailComprador(requestTransactionDTO.getMailComprador());
-            respose.setMonto(requestTransactionDTO.getMonto());
-            respose.setTransaccionId(savedSeller.getTransaction().stream().max(Comparator.comparing(Transaction::getId)).get().getId());
-            respose.setDescuento(sellerRepository.findByUsername(requestTransactionDTO.getSellerUsername())
-                    .get().getDescuento());
-        }
-
-        return respose;
+    	
     }
 
-    public ResponseApplyTransactionDTO applyTransaction (RequestApplyTransactionDTO requestApplyTransactionDTO){
+    public ResponseEntity<?> applyTransaction (RequestApplyTransactionDTO requestApplyTransactionDTO){
+    
+    	try {
+    		if(requestApplyTransactionDTO == null || requestApplyTransactionDTO.getTarjetaComprador() == null
+        			|| requestApplyTransactionDTO.getSellerUsername() == null || requestApplyTransactionDTO.getMonto() == null
+        			|| requestApplyTransactionDTO.getMonto() <= 0
+        			|| requestApplyTransactionDTO.getTransaccionId() == null) {
+        		ResponseErrorDTO respuesta = new ResponseErrorDTO();
+    			respuesta.setCode("90");
+    			respuesta.setMessage("El request enviado es invalido");
+    			respuesta.setUrl("Mal URL");
+    			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+        	}
+        	
+        	if(hayFraude(requestApplyTransactionDTO)) {
+        		ResponseErrorDTO respuesta = new ResponseErrorDTO();
+    			respuesta.setCode("91");
+    			respuesta.setMessage("La tarjeta enviada tiene fraude");
+    			respuesta.setUrl("Mal URL");
+    			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+        	}
+        	
+        	if(!autorizar(requestApplyTransactionDTO)) {
+        		ResponseErrorDTO respuesta = new ResponseErrorDTO();
+    			respuesta.setCode("92");
+    			respuesta.setMessage("No se puede autorizar la tarjeta por el monto indicado");
+    			respuesta.setUrl("Mal URL");
+    			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+        	}
+        	
+        	 Seller seller = sellerRepository.findByUsername(requestApplyTransactionDTO.getSellerUsername()).get();
+             
+        	 if(!validTransaction(seller)) {
+ 				ResponseErrorDTO respuesta = new ResponseErrorDTO();
+ 	    		respuesta.setCode("98");
+ 	    		respuesta.setMessage("Vendedor no encontrado");
+ 	    		respuesta.setUrl("Mal URL");
+ 	    		return ResponseEntity.status(HttpStatus.NO_CONTENT).body(respuesta);
+ 			}
+        	 
+        	 Set<Transaction> transacciones = seller.getTransaction() == null ? new HashSet<>() : seller.getTransaction();
 
-
-        if (hayFraude(requestApplyTransactionDTO) == false &&
-            autorizar(requestApplyTransactionDTO) == true){
-            Seller seller = sellerRepository.findByUsername(requestApplyTransactionDTO.getSellerUsername()).get();
-            Set<Transaction> transacciones = seller.getTransaction() == null ? new HashSet<>() : seller.getTransaction();
-
-            transacciones
-                    .stream()
-                    .filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId())
-                    .collect(Collectors.toList()).get(0).setTarjetaCredito(requestApplyTransactionDTO.getTarjetaComprador());
-
-            transacciones
-                    .stream()
-                    .filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId())
-                    .collect(Collectors.toList()).get(0).setCuotas("1");
-            transacciones
-                    .stream()
-                    .filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId())
-                    .collect(Collectors.toList()).get(0).setEstado(2);
-;
-            seller.setTransaction(transacciones);
-            sellerRepository.save(seller);
-            ResponseOkApplyTransactionDTO responseApplyTransactionDTO = new ResponseOkApplyTransactionDTO();
-            responseApplyTransactionDTO.setMesaje("Todo Ok");
-            responseApplyTransactionDTO.setUrlOk(seller.getConfiguracion().getURLOk());
-            return responseApplyTransactionDTO;
-
-        }else{
-            ResponseErrorApplyTransactionDTO responseApplyTransactionDTO = new ResponseErrorApplyTransactionDTO();
-            responseApplyTransactionDTO.setMesaje("Fraude o no valida");
-            responseApplyTransactionDTO.setUrlNoOk("Mal URL");
-            return responseApplyTransactionDTO;
-        }
+        	 Transaction transaccion = transacciones.stream().filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId()).collect(Collectors.toList()).get(0);
+             
+        	 transaccion.setTarjetaCredito(requestApplyTransactionDTO.getTarjetaComprador());
+        	 transaccion.setCuotas("1");
+        	 transaccion.setEstado(2);
+ 
+             seller.setTransaction(transacciones);
+             sellerRepository.save(seller);
+             ResponseOkApplyTransactionDTO responseApplyTransactionDTO = new ResponseOkApplyTransactionDTO();
+             responseApplyTransactionDTO.setMensaje("Todo Ok");
+             responseApplyTransactionDTO.setUrl(seller.getConfiguracion().getURLOk());
+             return ResponseEntity.status(HttpStatus.OK).body(responseApplyTransactionDTO);
+    	}catch(Exception e) {
+    		ResponseErrorDTO respuesta = new ResponseErrorDTO();
+			respuesta.setCode("99");
+			respuesta.setMessage("Ha ocurrido un error al realizar la transaccion");
+			respuesta.setDetailedMessage(getStackTrace(e));
+			respuesta.setUrl("Mal URL");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+    	}
 
     }
 
+    /*@Deprecated
     private boolean validTransaction (RequestTransactionDTO requestTransactionDTO){
 
         Optional<Seller> optional = sellerRepository.findByUsername(requestTransactionDTO.getSellerUsername());
@@ -108,6 +170,10 @@ public class DefaultPaymentService implements PaymentServiceInterface {
         boolean existeUsuario = optional.isPresent();
 
         return existeUsuario;
+    }*/
+    
+    private boolean validTransaction (Seller seller){
+        return seller != null;
     }
 
 	private boolean hayFraude(RequestApplyTransactionDTO requestTransactionDTO) {
@@ -132,7 +198,7 @@ public class DefaultPaymentService implements PaymentServiceInterface {
 	}
 	
 	
-	private void actualizarMontoAcumulado(RequestApplyTransactionDTO requestTransactionDTO) {
+	/*private void actualizarMontoAcumulado(RequestApplyTransactionDTO requestTransactionDTO) {
 		Autorizacion autorizacion = autorizacionRepository.findById(requestTransactionDTO.getTarjetaComprador()).get();
 		autorizacion.setMontoAcumulado(autorizacion.getMontoAcumulado() + requestTransactionDTO.getMonto());
 		autorizacionRepository.save(autorizacion);
@@ -144,5 +210,12 @@ public class DefaultPaymentService implements PaymentServiceInterface {
 		return autorizacion -> autorizacion != null && 
 				autorizacion.getMontoMaximo() >= montoTransaccion 
 				&& autorizacion.getMontoMaximo() >= montoTransaccion + autorizacion.getMontoAcumulado();
+	}*/
+	
+	private String getStackTrace(Exception e) {
+		StringWriter sw = new StringWriter();
+		PrintWriter pw = new PrintWriter(sw);
+		e.printStackTrace(pw);
+		return sw.toString(); 
 	}
 }

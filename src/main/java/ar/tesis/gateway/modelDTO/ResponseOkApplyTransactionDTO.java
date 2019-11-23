@@ -3,10 +3,11 @@ package ar.tesis.gateway.modelDTO;
 import lombok.Data;
 
 @Data
-public class ResponseOkApplyTransactionDTO extends ResponseApplyTransactionDTO{
+public class ResponseOkApplyTransactionDTO{
 
 
-    private String UrlOk;
+    private String url;
+    private String mensaje;
 
 
 }

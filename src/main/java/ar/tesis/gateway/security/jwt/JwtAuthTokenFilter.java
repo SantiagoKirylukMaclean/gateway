@@ -7,8 +7,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import ar.tesis.gateway.security.services.DefaultSellerDetailsService;
-import ar.tesis.gateway.security.services.UserDetailsServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,14 +16,16 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import ar.tesis.gateway.security.services.DefaultSellerDetailsService;
+
 
     public class JwtAuthTokenFilter extends OncePerRequestFilter {
 
     @Autowired
     private JwtProvider tokenProvider;
 
-    @Autowired
-    private UserDetailsServiceImpl userDetailsService;
+    //@Autowired
+    //private UserDetailsServiceImpl userDetailsService;
 
     @Autowired
     private DefaultSellerDetailsService defaultSellerDetailsService;
