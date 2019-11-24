@@ -6,6 +6,7 @@ import ar.tesis.gateway.repository.UserRepository;
 import ar.tesis.gateway.service.PaymentServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,16 +26,14 @@ public class PaymentsController {
 
     @RequestMapping(value = "/start", method = RequestMethod.POST)
     //@PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseStartTransactionDTO startPayment(@Valid @RequestBody RequestTransactionDTO RequestTransactionDTO,
-                                                    @RequestHeader HttpHeaders headers) {
-
+    public ResponseEntity<?> startPayment(@Valid @RequestBody RequestTransactionDTO RequestTransactionDTO, @RequestHeader HttpHeaders headers) {
+    	
         return paymentServiceInterface.startTransaction(RequestTransactionDTO);
     }
 
     @RequestMapping(value = "/run", method = RequestMethod.POST)
     //@PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseApplyTransactionDTO runPayment(@Valid @RequestBody RequestApplyTransactionDTO requestApplyTransactionDTO,
-                                                  @RequestHeader HttpHeaders headers) {
+    public ResponseEntity<?> runPayment(@Valid @RequestBody RequestApplyTransactionDTO requestApplyTransactionDTO, @RequestHeader HttpHeaders headers) {
 
         return paymentServiceInterface.applyTransaction(requestApplyTransactionDTO);
 

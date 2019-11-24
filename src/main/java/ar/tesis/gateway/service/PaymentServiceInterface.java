@@ -1,5 +1,8 @@
 package ar.tesis.gateway.service;
 
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
 import ar.tesis.gateway.modelDTO.RequestApplyTransactionDTO;
 import ar.tesis.gateway.modelDTO.RequestTransactionDTO;
 import ar.tesis.gateway.modelDTO.ResponseApplyTransactionDTO;
@@ -9,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public interface PaymentServiceInterface {
 
-    ResponseStartTransactionDTO startTransaction (RequestTransactionDTO requestTransactionDTO);
+	ResponseEntity<?> startTransaction (RequestTransactionDTO requestTransactionDTO);
 
-    ResponseApplyTransactionDTO applyTransaction (RequestApplyTransactionDTO requestApplyTransactionDTO);
+	ResponseEntity<?> applyTransaction (RequestApplyTransactionDTO requestApplyTransactionDTO);
 }

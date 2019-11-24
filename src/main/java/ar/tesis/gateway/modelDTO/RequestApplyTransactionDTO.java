@@ -35,7 +35,7 @@ public class RequestApplyTransactionDTO {
 
     @Getter
     @NotNull(message = "*Please provide an email")
-    private long transaccionId;
+    private Long transaccionId;
 
     @Getter
     @NotNull(message = "*Please provide an email")
