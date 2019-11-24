@@ -4,13 +4,13 @@ import ar.tesis.gateway.model.Seller;
 import ar.tesis.gateway.model.User;
 import ar.tesis.gateway.repository.SellerRepository;
 import ar.tesis.gateway.repository.UserRepository;
+import ar.tesis.gateway.security.jwt.JwtProvider;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @RestController
@@ -21,6 +21,9 @@ public class TestRestAPIs {
 
     @Autowired
     SellerRepository sellerRepository;
+
+    @Autowired
+    JwtProvider jwtProvider;
 
     @RequestMapping(value = "/api/test/user", method = RequestMethod.GET)
     @PreAuthorize("hasRole('ROLE_USER')")
@@ -47,8 +50,9 @@ public class TestRestAPIs {
     }
 
     @RequestMapping(value = "/api/test/seller", method = RequestMethod.GET)
-    public List<Seller> findAllSeller() {
-
+    public List<Seller> findAllSeller(HttpServletRequest headers) {
+        String authHeader = headers.getHeader("Authorization");
+        String user = jwtProvider.getUserNameFromJwtToken(authHeader.replace("Bearer ",""));
         return sellerRepository.findAll();
     }
 }

@@ -16,29 +16,25 @@ import javax.validation.Valid;
 @RequestMapping("/api/payments")
 public class PaymentsController {
 
-    @Autowired
-    UserRepository userRepository;
+
 
     @Autowired
     PaymentServiceInterface paymentServiceInterface;
 
-    @RequestMapping(value = "/apply", method = RequestMethod.POST)
-    @PreAuthorize("hasRole('ROLE_USER')")
-    public String applyPayment(@RequestBody Payment payment, @RequestHeader HttpHeaders headers) {
 
-        return userRepository.findByUsername(payment.getSeller()).toString();
-    }
 
     @RequestMapping(value = "/start", method = RequestMethod.POST)
     //@PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseStartTransactionDTO startPayment(@Valid @RequestBody RequestTransactionDTO RequestTransactionDTO, @RequestHeader HttpHeaders headers) {
+    public ResponseStartTransactionDTO startPayment(@Valid @RequestBody RequestTransactionDTO RequestTransactionDTO,
+                                                    @RequestHeader HttpHeaders headers) {
 
         return paymentServiceInterface.startTransaction(RequestTransactionDTO);
     }
 
     @RequestMapping(value = "/run", method = RequestMethod.POST)
     //@PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseApplyTransactionDTO runPayment(@Valid @RequestBody RequestApplyTransactionDTO requestApplyTransactionDTO, @RequestHeader HttpHeaders headers) {
+    public ResponseApplyTransactionDTO runPayment(@Valid @RequestBody RequestApplyTransactionDTO requestApplyTransactionDTO,
+                                                  @RequestHeader HttpHeaders headers) {
 
         return paymentServiceInterface.applyTransaction(requestApplyTransactionDTO);
 

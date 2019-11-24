@@ -44,11 +44,12 @@ public class DefaultPaymentService implements PaymentServiceInterface {
             transaction.setMailComprador(requestTransactionDTO.getMailComprador());
             transaction.setMonto(requestTransactionDTO.getMonto());
             transaction.setEstado(1);
+            transaction.setCreationDateTime(Calendar.getInstance());
             Set<Transaction> transacciones = seller.getTransaction() == null ? new HashSet<>() : seller.getTransaction();
             transacciones.add(transaction);
             seller.setTransaction(transacciones);
             Seller savedSeller = sellerRepository.save(seller);
-            long lastTransaction = savedSeller.getTransaction().stream().max(Comparator.comparing(Transaction::getId)).get().getId();
+
             savedSeller.getTransaction().stream().max(Comparator.comparing(Transaction::getId));
 
 
@@ -65,37 +66,46 @@ public class DefaultPaymentService implements PaymentServiceInterface {
 
     public ResponseApplyTransactionDTO applyTransaction (RequestApplyTransactionDTO requestApplyTransactionDTO){
 
+        if (hayFraude(requestApplyTransactionDTO) == false){
+            if (autorizar(requestApplyTransactionDTO) == true) {
+                try {
+                    Seller seller = sellerRepository.findByUsername(requestApplyTransactionDTO.getSellerUsername()).get();
+                    Set<Transaction> transacciones = seller.getTransaction() == null ? new HashSet<>() : seller.getTransaction();
 
-        if (hayFraude(requestApplyTransactionDTO) == false &&
-            autorizar(requestApplyTransactionDTO) == true){
-            Seller seller = sellerRepository.findByUsername(requestApplyTransactionDTO.getSellerUsername()).get();
-            Set<Transaction> transacciones = seller.getTransaction() == null ? new HashSet<>() : seller.getTransaction();
+                    Transaction transaccionModificada =
+                            transacciones
+                                    .stream()
+                                    .filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId())
+                                    .collect(Collectors.toList()).get(0);
 
-            transacciones
-                    .stream()
-                    .filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId())
-                    .collect(Collectors.toList()).get(0).setTarjetaCredito(requestApplyTransactionDTO.getTarjetaComprador());
+                    transaccionModificada.setTarjetaCredito(requestApplyTransactionDTO.getTarjetaComprador());
+                    transaccionModificada.setMonto(
+                            transaccionModificada.getMonto() - (transaccionModificada.getMonto() * requestApplyTransactionDTO.getDescuento().getDescuento() / 100.00)
+                    );
+                    transaccionModificada.setCuotas(requestApplyTransactionDTO.getCuotas());
+                    transaccionModificada.setEstado(2);
+                    transaccionModificada.setModificationDateTime(Calendar.getInstance());
 
-            transacciones
-                    .stream()
-                    .filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId())
-                    .collect(Collectors.toList()).get(0).setCuotas("1");
-            transacciones
-                    .stream()
-                    .filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId())
-                    .collect(Collectors.toList()).get(0).setEstado(2);
-;
-            seller.setTransaction(transacciones);
-            sellerRepository.save(seller);
-            ResponseOkApplyTransactionDTO responseApplyTransactionDTO = new ResponseOkApplyTransactionDTO();
-            responseApplyTransactionDTO.setMesaje("Todo Ok");
-            responseApplyTransactionDTO.setUrlOk(seller.getConfiguracion().getURLOk());
-            return responseApplyTransactionDTO;
-
+                    seller.setTransaction(transacciones);
+                    sellerRepository.save(seller);
+                    ResponseOkApplyTransactionDTO responseApplyTransactionDTO = new ResponseOkApplyTransactionDTO();
+                    responseApplyTransactionDTO.setMesaje("Todo Ok");
+                    responseApplyTransactionDTO.setUrlOk(seller.getConfiguracion().getURLOk());
+                    return responseApplyTransactionDTO;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    ResponseErrorApplyTransactionDTO responseApplyTransactionDTO = new ResponseErrorApplyTransactionDTO();
+                    responseApplyTransactionDTO.setMesaje("El mensaje ingresado tiene datos invalidos.");
+                    return responseApplyTransactionDTO;
+                }
+            }else{
+                ResponseErrorApplyTransactionDTO responseApplyTransactionDTO = new ResponseErrorApplyTransactionDTO();
+                responseApplyTransactionDTO.setMesaje("La compra no ha sido autorizada");
+                return responseApplyTransactionDTO;
+            }
         }else{
             ResponseErrorApplyTransactionDTO responseApplyTransactionDTO = new ResponseErrorApplyTransactionDTO();
-            responseApplyTransactionDTO.setMesaje("Fraude o no valida");
-            responseApplyTransactionDTO.setUrlNoOk("Mal URL");
+            responseApplyTransactionDTO.setMesaje("Posibilidad de Fraude");
             return responseApplyTransactionDTO;
         }
 

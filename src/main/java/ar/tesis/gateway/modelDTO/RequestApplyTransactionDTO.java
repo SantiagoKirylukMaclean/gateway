@@ -14,10 +14,6 @@ public class RequestApplyTransactionDTO {
     private String sellerUsername;
 
     @Getter
-    @NotEmpty(message = "*Please provide an email")
-    private String mailComprador;
-
-    @Getter
     @NotNull(message = "*Please provide an email")
     private Double monto;
 
@@ -44,4 +40,8 @@ public class RequestApplyTransactionDTO {
     @Getter
     @NotNull(message = "*Please provide an email")
     private int CCV;
+
+    @Getter
+    @NotNull(message = "*Please provide quotes")
+    private int cuotas;
 }
