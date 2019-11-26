@@ -16,7 +16,7 @@ import java.util.List;
 public class SellerController {
 
     @Autowired
-    TransactionServiceInterface sellerServiceInterface;
+    TransactionServiceInterface transactionServiceInterface;
 
     @Autowired
     JwtProvider jwtProvider;
@@ -26,7 +26,7 @@ public class SellerController {
     public List<Transaction> getIncompleteTransactions(HttpServletRequest headers) {
         String authHeader = headers.getHeader("Authorization");
         String user = jwtProvider.getUserNameFromJwtToken(authHeader.replace("Bearer ",""));
-        return sellerServiceInterface.findIncompleteTrnsactions(user);
+        return transactionServiceInterface.findIncompleteTrnsactions(user);
     }
 
 }
