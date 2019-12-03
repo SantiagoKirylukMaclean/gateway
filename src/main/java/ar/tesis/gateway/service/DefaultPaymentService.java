@@ -75,7 +75,7 @@ public class DefaultPaymentService implements PaymentServiceInterface {
 
 
             response.setSellerUsername(requestTransactionDTO.getSellerUsername());
-            response.setMailComprador(requestTransactionDTO.getMailComprador());
+            //response.setMailComprador(requestTransactionDTO.getMailComprador());
             response.setMonto(requestTransactionDTO.getMonto());
             response.setTransaccionId(savedSeller.getTransaction().stream().max(Comparator.comparing(Transaction::getId)).get().getId());
             response.setDescuento(seller.getDescuento());
@@ -95,13 +95,70 @@ public class DefaultPaymentService implements PaymentServiceInterface {
 
 
         try {
+            Seller seller;
+
+            if (requestApplyTransactionDTO.getSellerUsername() == null ||
+                    sellerRepository.findByUsername(requestApplyTransactionDTO.getSellerUsername()).isPresent() == false){
+                ResponseErrorDTO respuesta = new ResponseErrorDTO();
+                respuesta.setCode("98");
+                respuesta.setMessage("Vendedor no encontrado");
+                respuesta.setUrl("Mal URL");
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(respuesta);
+            }else{
+                seller = sellerRepository.findByUsername(requestApplyTransactionDTO.getSellerUsername()).get();
+            }
+
+
             if (requestApplyTransactionDTO == null || requestApplyTransactionDTO.getTarjetaComprador() == null
-                    || requestApplyTransactionDTO.getSellerUsername() == null || requestApplyTransactionDTO.getMonto() == null
+                    || requestApplyTransactionDTO.getMonto() == null
                     || requestApplyTransactionDTO.getMonto() <= 0
                     || requestApplyTransactionDTO.getTransaccionId() == null) {
                 ResponseErrorDTO respuesta = new ResponseErrorDTO();
                 respuesta.setCode("90");
                 respuesta.setMessage("El request enviado es invalido");
+                respuesta.setUrl("Mal URL");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+            }
+
+            if (!validTransaction(seller)) {
+                ResponseErrorDTO respuesta = new ResponseErrorDTO();
+                respuesta.setCode("98");
+                respuesta.setMessage("Vendedor no encontrado");
+                respuesta.setUrl("Mal URL");
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(respuesta);
+            }
+
+            Set<Transaction> transacciones = seller.getTransaction() == null ? new HashSet<>() : seller.getTransaction();
+
+            Transaction transaccionModificada;
+
+            if (transacciones.stream().filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId())
+                    .collect(Collectors.toList()).isEmpty() == true) {
+                ResponseErrorDTO respuesta = new ResponseErrorDTO();
+                respuesta.setCode("93");
+                respuesta.setMessage("El Id de la transaccion es incorrecto");
+                respuesta.setUrl("Mal URL");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+            }else{
+                transaccionModificada =
+                        transacciones
+                                .stream()
+                                .filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId())
+                                .collect(Collectors.toList()).get(0);
+            }
+
+            if (transaccionModificada.getEstado() == 2) {
+                ResponseErrorDTO respuesta = new ResponseErrorDTO();
+                respuesta.setCode("95");
+                respuesta.setMessage("La transaccion esta en estado finalizada");
+                respuesta.setUrl("Mal URL");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
+            }
+
+            if (Double.compare(transaccionModificada.getMonto(), requestApplyTransactionDTO.getMonto()) != 0){
+                ResponseErrorDTO respuesta = new ResponseErrorDTO();
+                respuesta.setCode("94");
+                respuesta.setMessage("El monto enviado es distinto al monto original");
                 respuesta.setUrl("Mal URL");
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
             }
@@ -121,23 +178,6 @@ public class DefaultPaymentService implements PaymentServiceInterface {
                 respuesta.setUrl("Mal URL");
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(respuesta);
             }
-
-            Seller seller = sellerRepository.findByUsername(requestApplyTransactionDTO.getSellerUsername()).get();
-
-            if (!validTransaction(seller)) {
-                ResponseErrorDTO respuesta = new ResponseErrorDTO();
-                respuesta.setCode("98");
-                respuesta.setMessage("Vendedor no encontrado");
-                respuesta.setUrl("Mal URL");
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).body(respuesta);
-            }
-            Set<Transaction> transacciones = seller.getTransaction() == null ? new HashSet<>() : seller.getTransaction();
-
-            Transaction transaccionModificada =
-                    transacciones
-                            .stream()
-                            .filter(trx -> trx.getId() == requestApplyTransactionDTO.getTransaccionId())
-                            .collect(Collectors.toList()).get(0);
 
             transaccionModificada.setTarjetaCredito(requestApplyTransactionDTO.getTarjetaComprador());
             transaccionModificada.setMonto(

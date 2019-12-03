@@ -17,9 +17,6 @@ public class ResponseStartTransactionDTO {
     @NotNull(message = "*Please provide an email")
     private String sellerUsername;
 
-    @NotEmpty(message = "*Please provide an email")
-    private String mailComprador;
-
     @NotNull(message = "*Please provide an email")
     private Double monto;
 

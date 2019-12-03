@@ -85,7 +85,7 @@ public class ManagementService implements ManagementServiceInterface {
 			String finalSavePath = new String();
 			finalSavePath = savePath + id;
 
-			String[] executeCmd = new String[] { mysqlFolder + "mysql", "payments", "-u" + dbUser, "-p" + dbPass, "-e",
+			String[] executeCmd = new String[] { mysqlFolder + "mysql", "payments5", "-u" + dbUser, "-p" + dbPass, "-e",
 					" source " + finalSavePath };
 
 			Process runtimeProcess = Runtime.getRuntime().exec(executeCmd);
